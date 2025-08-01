@@ -7,7 +7,7 @@ from langchain import PromptTemplate
 from openai import RateLimitError
 from typing import List
 from rank_bm25 import BM25Okapi
-import fitz
+# import fitz
 import asyncio
 import random
 import textwrap

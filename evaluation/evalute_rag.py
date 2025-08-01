@@ -23,10 +23,19 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+from llm_config import *
+
 # 09/15/24 kimmeyh Added path where helper functions is located to the path
 # Add the parent directory to the path since we work with notebooks
+from dotenv import load_dotenv
 import sys
 import os
+
+# Load environment variables from .env file
+load_dotenv()
+print("[DEBUG] openai_api_base =", os.getenv("openai_api_base"))
+print("[DEBUG] openai_api_key =", os.getenv("openai_api_key"))
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
@@ -36,6 +45,13 @@ from helper_functions import (
     answer_question_from_context,
     retrieve_context_per_question
 )
+
+custom_model = ChatOpenAI(
+    model="gpt-4o",  # or "gpt-4-vision-preview"
+    openai_api_base=os.getenv("openai_api_base"),
+    openai_api_key=os.getenv("openai_api_key")
+)
+customOpenAI = CustomOpenAI(model=custom_model)
 
 def create_deep_eval_test_cases(
     questions: List[str],
@@ -70,7 +86,7 @@ def create_deep_eval_test_cases(
 # Define evaluation metrics
 correctness_metric = GEval(
     name="Correctness",
-    model="gpt-4-turbo",
+    model=customOpenAI,
     evaluation_params=[
         LLMTestCaseParams.EXPECTED_OUTPUT,
         LLMTestCaseParams.ACTUAL_OUTPUT
@@ -82,13 +98,13 @@ correctness_metric = GEval(
 
 faithfulness_metric = FaithfulnessMetric(
     threshold=0.7,
-    model="gpt-4-turbo",
+    model=customOpenAI,
     include_reason=False
 )
 
 relevance_metric = ContextualRelevancyMetric(
     threshold=1,
-    model="gpt-4-turbo",
+    model=customOpenAI,
     include_reason=True
 )
 
@@ -105,7 +121,12 @@ def evaluate_rag(retriever, num_questions: int = 5) -> Dict[str, Any]:
     """
     
     # Initialize LLM
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4-turbo-preview")
+    llm = ChatOpenAI(
+            temperature=0,
+            model_name="gpt-4-turbo-preview",
+            openai_api_base=os.getenv("openai_api_base"),
+            openai_api_key=os.getenv("openai_api_key")
+        )
     
     # Create evaluation prompt
     eval_prompt = PromptTemplate.from_template("""
