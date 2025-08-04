@@ -13,7 +13,11 @@ import random
 import textwrap
 import numpy as np
 from enum import Enum
+import os
+from dotenv import load_dotenv
 
+# Load environment variables from a .env file
+load_dotenv()
 
 def replace_t_with_space(list_of_documents):
     """
@@ -61,7 +65,8 @@ def encode_pdf(path, chunk_size=1000, chunk_overlap=200):
     # Load PDF documents
     loader = PyPDFLoader(path)
     documents = loader.load()
-
+    print('os.getenv("openai_api_base")==', os.getenv("openai_api_base"))
+ 
     # Split documents into chunks
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap, length_function=len
@@ -70,7 +75,10 @@ def encode_pdf(path, chunk_size=1000, chunk_overlap=200):
     cleaned_texts = replace_t_with_space(texts)
 
     # Create embeddings and vector store
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(
+                    base_url=os.getenv("openai_api_base"),
+                    api_key=os.getenv("openai_api_key")
+                 )
     vectorstore = FAISS.from_documents(cleaned_texts, embeddings)
 
     return vectorstore
