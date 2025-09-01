@@ -42,5 +42,6 @@ async def run_sequential():
 async def main():
     # await run_concurrent()
     await run_sequential()
+    print('hi')
 
 asyncio.run(main())
